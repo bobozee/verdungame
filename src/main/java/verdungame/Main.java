@@ -402,7 +402,7 @@ public class Main extends Application {
 
     }
 
-    private <T extends Unit> void spawn(Class<? extends Unit> unitType) throws Exception {
+    public <T extends Unit> void spawn(Class<? extends Unit> unitType) throws Exception {
 
         log(currAllegiance + " spawns a " + unitType.getName().replace("verdungame.units.", "") + "!");
 
@@ -581,31 +581,26 @@ public class Main extends Application {
 
         Class<? extends Unit> targetType = target.getClass();
 
-        //go through all modifying units
-        for (UnitModifying unitM : modUnits) {
+        ModManager modM = origin.getModManager();
 
-            ModManager modM = unitM.getModManager();
+        //if the modmap has a modifier for the target type
+        if (modM.getModMap().containsKey(targetType)) {
 
-            //if the modmap has a modifier for the target type
-            if (modM.getModMap().containsKey(targetType)) {
+            //if the target is in reach of the effect range of the modifying unit
+            if (map.isInReach(target.getPosition(), origin.getPosition(),
+                    origin.getSelfModifiers().applyTo(origin.getStats()).getEffectRange())) {
 
-                //if the target is in reach of the effect range of the modifying unit
-                if (map.isInReach(target.getPosition(), unitM.getPosition(),
-                        unitM.getSelfModifiers().applyTo(unitM.getStats()).getEffectRange())) {
+                //if the target is registered in the modmap but doesn't have the modifier applied
+                if (!target.getSelfModifiers().hasModifier(modM.getModMap().get(targetType))) {
 
-                    //if the target is registered in the modmap but doesn't have the modifier applied
-                    if (!target.getSelfModifiers().hasModifier(modM.getModMap().get(targetType))) {
-
-                        target.getSelfModifiers().addModifierOrigin(origin, modM.getModMap().get(targetType));
-
-                    }
-
-                //if the target is out of reach yet does have the modifier applied
-                } else if (target.getSelfModifiers().hasModifier(modM.getModMap().get(targetType))) {
-
-                    target.getSelfModifiers().removeModifierOrigin(origin);
+                    target.getSelfModifiers().addModifierOrigin(origin, modM.getModMap().get(targetType));
 
                 }
+
+            //if the target is out of reach yet does have the modifier applied
+            } else if (target.getSelfModifiers().hasModifier(modM.getModMap().get(targetType))) {
+
+                target.getSelfModifiers().removeModifierOrigin(origin);
 
             }
 
@@ -645,6 +640,19 @@ public class Main extends Application {
         String text = move.getText().replace("(ALLEGIANCE)", currAllegiance.toString());
 
         log(text);
+
+    }
+
+    public int getPoints(Allegiances allegiance) {
+
+        switch (allegiance) {
+
+            case RED: return pointsRed;
+            case GREEN: return pointsGreen;
+
+        }
+
+        return 0;
 
     }
 

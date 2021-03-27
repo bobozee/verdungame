@@ -1,6 +1,6 @@
 package verdungame.units;
 
-public class Building extends Unit {
+public abstract class Building extends Unit {
 
 
 
